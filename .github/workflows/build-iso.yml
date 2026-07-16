@@ -1,0 +1,40 @@
+name: Build JARVIS OS ISO
+
+# Easiest way to actually get the .iso if you're on Windows and don't have a
+# spare Linux machine: push this repo to GitHub and either wait for this to
+# run automatically, or trigger it manually from the Actions tab.
+#
+# The finished .iso appears as a downloadable "Artifact" on the workflow run
+# (GitHub Actions -> this workflow run -> Artifacts section, bottom of page).
+
+on:
+  workflow_dispatch:   # manual "Run workflow" button
+  push:
+    branches: [main]
+    paths:
+      - "**.py"
+      - "iso_builder/**"
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install live-build
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y live-build rsync
+
+      - name: Build ISO
+        working-directory: iso_builder
+        run: sudo ./build_iso.sh
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-os-iso
+          path: iso_builder/*.iso
+          retention-days: 14
